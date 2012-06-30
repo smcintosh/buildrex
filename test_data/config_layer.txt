@@ -1,0 +1,10 @@
+Documentation/asciidoc.conf
+Documentation/user-manual.conf
+config.mak.in
+configure.ac
+debian/control
+debian/git-core.files
+debian/git-cvs.files
+debian/rules
+git.spec.in
+git-core.spec.in
