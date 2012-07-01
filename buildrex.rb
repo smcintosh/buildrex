@@ -9,32 +9,55 @@ require 'LocBucket.rb'
 
 require 'set'
 
+REPO_DUMP = "REPO_DUMP_FILE"
+SRC_CATEGORY = "SRC_CATEGORY_FILE"
+CONSTRUCTION_CATEGORY = "CONSTRUCTION_CATEGORY_FILE"
+CFG_CATEGORY = "CONFIGURATION_CATEGORY_FILE"
+SCRIPTS_CATEGORY = "SCRIPTS_CATEGORY_FILE"
+TESTS_CATEGORY = "TESTS_CATEGORY_FILE"
+
 #
 # Program begins here
 #
+
+#
+# Read the configuration file
+#
+begin
+	configfile = File.read(ARGV[0])
+	config_parms = Hash[configfile.scan(/(\S+)\s*=\s*"([^"]+)/)]
+rescue
+	STDERR.puts("ERROR: Failed to read configuration file")
+	exit 1
+end
+
+#
+# Open the repository dump file
+#
+begin
+	if config_parms[REPO_DUMP]
+		logfile = File.new(config_parms[REPO_DUMP])
+	else
+		STDERR.puts(
+			"ERROR: Missing mandatory parameter '#{REPO_DUMP}'")
+	end
+rescue
+	STDERR.puts("ERROR: Failed to open repository dump file")
+	exit 1
+end
+
+#
+# Read all the categories
+#
 categories = Array.new()
-
-#
-# Open the configuration file
-#
-begin
-	categflist = File.new(ARGV[0])
-rescue
-	STDERR.puts("ERROR: Failed to open category list file")
-	exit 1
-end
-
-begin
-	logfile = File.new(ARGV[1])
-rescue
-	STDERR.puts("ERROR: Failed to open log file")
-	exit 1
-end
-
-# Read all the categories from the listing file
-categflist.each_line do |line|
-	category = FileCategory.new(line.strip)
-	categories.push(category)
+[SRC_CATEGORY,CONSTRUCTION_CATEGORY,CFG_CATEGORY,SCRIPTS_CATEGORY,TESTS_CATEGORY].each do |category|
+	if config_parms[category]
+		categories.push(FileCategory.new(config_parms[category]))
+	else
+		STDERR.puts(
+			"ERROR: Missing mandatory parameter '#{category}'")
+		exit 1
+	end
 end
 
 # Log reader factory initialization
